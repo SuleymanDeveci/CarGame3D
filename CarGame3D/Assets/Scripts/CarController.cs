@@ -1,10 +1,11 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CarController : MonoBehaviour
 {
     private Rigidbody rb;
-    public WheelColliders wheelColliders;  // aracýn tekerlek colliderlerinin bulunduðu sinifi newliyoruz
-    public WhellMeshes wheelMeshes;        // aracýn tekerleklerinin MeshRenderer'lerinin bulundugu sinifi newliyoruz
+    public WheelColliders wheelColliders;  // aracin tekerlek colliderlerinin bulundugu sinifi newliyoruz
+    public WhellMeshes wheelMeshes;        // aracin tekerleklerinin MeshRenderer'lerinin bulundugu sinifi newliyoruz
     public WheelParticles wheelParticles;  // her tekerin cikaracagi duman particle larini ayri ayri tutan sinifi newliyoruz
     public float gasInput;       // gaza ne kadar bastigimizin bilgisini tutacak olan degisken
     public float brakeInput;     // frene ne kadar bastigimizin bilgisini tutacak olan degisken
@@ -17,27 +18,35 @@ public class CarController : MonoBehaviour
     public AnimationCurve steeringCurve; //arac hizli giderken daha az, yavas giderken daha cok direksiyon donus acisi olsun diye kullandigim degisken (100 birim hizla giderken 15 derece -
                                          // (1 birim hizla giderken 40 derece donus acisi olacak sekilde ayarlandi)
     public GameObject smokePrefab;       // icinde tekerlek dumani icin olusturulan ParticleSystem'in yer aldigi bir GameObject
+    public Slider AutoGearSlider;        // otomatik vites için kullanilan bu slider 1, 2, 3, 4 olmak üzere sadece bu 4 int degeri alabilecek: 4(P), 3(R), 2(N), 1(D) viteslerini temsil edecek 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();   
-        InstantiateSmoke();    
+        InstantiateSmoke();
+        AutoGearSlider.onValueChanged.AddListener(delegate { OnAutoGearValueChange(); }); // sliderin degeri degistiginde, yani vites degistiginde "OnAutoGearValueChange" fonk. tetiklenir
     }
 
     private void Update()
     {
-        speed = rb.velocity.magnitude; // speed degiskeni aracin anlik hizi ile surekli guncelleniyor.
+        speed = rb.velocity.magnitude * 5; // speed degiskeni aracin anlik hizi ile surekli guncelleniyor.
         ApplyWheelPosition();
         ApplyMotor();
         ApplySteering();
-        ApplyBrake();
+        ApplyNormalBrake();
         CheckInput();
     }
 
+    private void OnAutoGearValueChange() // her vites degistiginde gasInput degerini "0" a esitliyoruz
+    {
+        gasInput = 0;
+    }
     private void InstantiateSmoke()  // Her tekerlek icin, icinde ParticleSystem bulunan bir GameObject olusturulup transformlari ayarlanip wheelParticles nesnesinin içerisi dolduruluyor
     {
         wheelParticles.FRWheelParticle = Instantiate(smokePrefab, wheelColliders.FRWheel.transform.position - Vector3.up * wheelColliders.FRWheel.radius, Quaternion.identity, 
             wheelColliders.FRWheel.transform).GetComponent<ParticleSystem>(); // Sag On teker icin, icerisinde ParticleSystem bulunan bir GameObject olusturulup, konumu tekerin en alti
-            // olacak sekilde ayarlanip, icerisindeki ParticleSystem Componenti alinip, wheelParticles.FRWheelParticle degiskeni icerisine atandi.
+            // olacak sekilde ayarlanip, Particlelerin tekerlek ile birlikte hareket etmesi için wheelColliders.FRWheel.transform'u kendisine parrent olarak ataniyor,
+            // ve bu GameObject icerisindeki ParticleSystem Componenti alinip, wheelParticles.FRWheelParticle degiskeni icerisine ataniyor.
+            // bu sayede wheelParticles.FRWheelParticle ParticleSystemi istenildigi zaman istenildigi yerden yonetilebilir
 
         wheelParticles.FLWheelParticle = Instantiate(smokePrefab, wheelColliders.FLWheel.transform.position - Vector3.up * wheelColliders.FRWheel.radius, Quaternion.identity,
             wheelColliders.FLWheel.transform).GetComponent<ParticleSystem>();
@@ -51,28 +60,66 @@ public class CarController : MonoBehaviour
 
     private void CheckInput() // kullanicidan alinan input verileri gerekli degiskenlere ataniyor
     {
-        gasInput = Input.GetAxis("Vertical"); // W ye basili tutuldugunda gasInput degiskeni 1 degerine gider, S ye basildiginda -1 degerine gider
-        steeringInput = Input.GetAxis("Horizontal"); // D tusuna basildigi zaman steeringInput degiskeni 1, A tusuna basildigi zaman -1 degerine gider
-        slipAngle = Vector3.Angle(transform.forward, rb.velocity-transform.forward); 
-        if(slipAngle < 120)
+        if(AutoGearSlider.value == 1)  // eger vites D konumunda ise true
         {
-            if(gasInput < 0)
+            if (Input.GetKey(KeyCode.W)) // "W" ye basili tutuldugu süre boyunca true
             {
-                brakeInput = Mathf.Abs(gasInput);
+                if (gasInput < 1) // direk tusa basildigi anda gasInput = 1 diyerek aracin cok sert kalkmasini engellemek icin, gasInput'u yavas yavas artiriyoruz
+                {
+                    gasInput += 0.1f * Time.deltaTime;
+                }
+                else // gas input'un 1 degerini gecmeyip sabit kalmasini sagliyoruz.
+                {
+                    gasInput = 1;
+                }
+            }
+            if (Input.GetKeyUp(KeyCode.W)) // elimizi "W" tusundan ceker cekmez gasInputu 0 a esitliyoruz
+            {
                 gasInput = 0;
             }
-            else
+        }
+        else if (AutoGearSlider.value == 3) // eger vites R konumunda ise true
+        {
+            if (Input.GetKey(KeyCode.W)) // "W" ye basili tutuldugu süre boyunca true
             {
-                brakeInput = 0;
+                if (gasInput > -1) // direk tusa basildigi anda gasInput = -1 diyerek aracin cok sert geri geri gitmesini engellemek icin, gasInput'u yavas yavas azaltiyoruz
+                {
+                    gasInput -= 0.1f * Time.deltaTime;
+                }
+                else // gas input'un -1 degerinin altina inmeyip sabit kalmasini sagliyoruz.
+                {
+                    gasInput = -1;
+                }
+            }
+            if (Input.GetKeyUp(KeyCode.W)) // elimizi "W" tusundan ceker cekmez gasInputu 0 a esitliyoruz
+            {
+                gasInput = 0;
             }
         }
-        else
+        
+        steeringInput = Input.GetAxis("Horizontal"); // D tusuna basildigi zaman steeringInput degiskeni 1, A tusuna basildigi zaman -1 degerine gider
+        slipAngle = Vector3.Angle(transform.forward, rb.velocity-transform.forward); // aracin kac derece kaydigi bilgisi ataniyor
+
+        if (Input.GetKey(KeyCode.S)) // "S" ye basili tutuldugu süre boyunca true
+        {
+            if (brakeInput < 1) // direk tusa basildigi anda brakeInput = 1 diyerek aracin cok sert durmasini engellemek icin, brakeInput'u yavas yavas artiriyoruz
+            {
+                brakeInput += 1f * Time.deltaTime;
+            }
+            else // brakeInput'un 1 degerini gecmeyip sabit kalmasini sagliyoruz.
+            {
+                brakeInput = 1;
+            }
+        }
+        if (Input.GetKeyUp(KeyCode.S)) // elimizi "S" tusundan ceker cekmez BrakeInput'u 0 a esitliyoruz
         {
             brakeInput = 0;
         }
+
+        
     }
 
-    private void ApplyBrake()
+    private void ApplyNormalBrake()
     {
         wheelColliders.FRWheel.brakeTorque = brakeInput * brakePower * 0.7f;
         wheelColliders.FLWheel.brakeTorque = brakeInput * brakePower * 0.7f;
@@ -80,6 +127,7 @@ public class CarController : MonoBehaviour
         wheelColliders.RRWheel.brakeTorque = brakeInput * brakePower * 0.3f;
         wheelColliders.RLWheel.brakeTorque = brakeInput * brakePower * 0.3f;
     }
+
 
 
     private void ApplyMotor()
