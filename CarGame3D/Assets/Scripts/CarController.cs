@@ -9,6 +9,7 @@ public class CarController : MonoBehaviour
     public WheelParticles wheelParticles;  // her tekerin cikaracagi duman particle larini ayri ayri tutan sinifi newliyoruz
     public float gasInput;       // gaza ne kadar bastigimizin bilgisini tutacak olan degisken
     public float brakeInput;     // frene ne kadar bastigimizin bilgisini tutacak olan degisken
+    public float handBrakeInput;     // el frenine ne kadar bastigimizin bilgisini tutacak olan degisken
     public float steeringInput;  // direksiyonu ne kadar cevirdigimizin bilgisini tutacak olan degisken
     public float motorPower;     // aracin gucunu tutan degisken
     public float brakePower;     // aracin fren gucunu tutan degisken
@@ -32,7 +33,6 @@ public class CarController : MonoBehaviour
         ApplyWheelPosition();
         ApplyMotor();
         ApplySteering();
-        ApplyNormalBrake();
         CheckInput();
     }
 
@@ -58,7 +58,7 @@ public class CarController : MonoBehaviour
             wheelColliders.RLWheel.transform).GetComponent<ParticleSystem>();
     }
 
-    private void CheckInput() // kullanicidan alinan input verileri gerekli degiskenlere ataniyor
+    private void CheckInput() // oyuncudan alinan input verileri gerekli degiskenlere ataniyor
     {
         if(AutoGearSlider.value == 1)  // eger vites D konumunda ise true
         {
@@ -73,7 +73,7 @@ public class CarController : MonoBehaviour
                     gasInput = 1;
                 }
             }
-            if (Input.GetKeyUp(KeyCode.W)) // elimizi "W" tusundan ceker cekmez gasInputu 0 a esitliyoruz
+            else if (Input.GetKeyUp(KeyCode.W)) // elimizi "W" tusundan ceker cekmez gasInputu 0 a esitliyoruz
             {
                 gasInput = 0;
             }
@@ -91,14 +91,11 @@ public class CarController : MonoBehaviour
                     gasInput = -1;
                 }
             }
-            if (Input.GetKeyUp(KeyCode.W)) // elimizi "W" tusundan ceker cekmez gasInputu 0 a esitliyoruz
+            else if (Input.GetKeyUp(KeyCode.W)) // elimizi "W" tusundan ceker cekmez gasInputu 0 a esitliyoruz
             {
                 gasInput = 0;
             }
         }
-        
-        steeringInput = Input.GetAxis("Horizontal"); // D tusuna basildigi zaman steeringInput degiskeni 1, A tusuna basildigi zaman -1 degerine gider
-        slipAngle = Vector3.Angle(transform.forward, rb.velocity-transform.forward); // aracin kac derece kaydigi bilgisi ataniyor
 
         if (Input.GetKey(KeyCode.S)) // "S" ye basili tutuldugu süre boyunca true
         {
@@ -110,35 +107,54 @@ public class CarController : MonoBehaviour
             {
                 brakeInput = 1;
             }
+            ApplyNormalBrake();
         }
-        if (Input.GetKeyUp(KeyCode.S)) // elimizi "S" tusundan ceker cekmez BrakeInput'u 0 a esitliyoruz
+
+        if (Input.GetKeyUp(KeyCode.S)) // elimizi "S" tusundan ceker cekmez brakeInput'u 0 a esitliyoruz
         {
             brakeInput = 0;
+            ApplyNormalBrake();
         }
 
-        
+        if (Input.GetKey(KeyCode.Space)) // "Space" ye basili tutuldugu süre boyunca true
+        {
+            handBrakeInput = 1;  // yavas yavas artirmak yerine "Space" basildigi anda handBrakeInput'u 1 yapiyoruz cunku el freni cekildigi anda arka tekerler kilitlensin istiyoruz
+            ApplyHandBrake();
+        }
+        else if (Input.GetKeyUp(KeyCode.Space)) // elimizi "Space" tusundan ceker cekmez handBrakeInput'u 0 a esitliyoruz
+        {
+            handBrakeInput = 0;
+            ApplyHandBrake();
+        }
+
+        steeringInput = Input.GetAxis("Horizontal"); // D tusuna basildigi zaman steeringInput degiskeni 1, A tusuna basildigi zaman -1 degerine gider
+        slipAngle = Vector3.Angle(transform.forward, rb.velocity-transform.forward); // aracin kac derece kaydigi bilgisi ataniyor
     }
 
-    private void ApplyNormalBrake()
+    private void ApplyNormalBrake() // oyuncu alýnan fren bilgisi tekerleklere uygulaniyor
     {
-        wheelColliders.FRWheel.brakeTorque = brakeInput * brakePower * 0.7f;
+        wheelColliders.FRWheel.brakeTorque = brakeInput * brakePower * 0.7f; // fren gucunun yuzde 70'i on tekerlere uygulaniyor
         wheelColliders.FLWheel.brakeTorque = brakeInput * brakePower * 0.7f;
 
-        wheelColliders.RRWheel.brakeTorque = brakeInput * brakePower * 0.3f;
+        wheelColliders.RRWheel.brakeTorque = brakeInput * brakePower * 0.3f; // fren gucunun yuzde 30'u arka tekerlere uygulaniyor
         wheelColliders.RLWheel.brakeTorque = brakeInput * brakePower * 0.3f;
     }
 
+    private void ApplyHandBrake() // el freni tusuna basildigi zaman sadece arka iki tekere fren uygulaniyor
+    {
+        wheelColliders.RRWheel.brakeTorque = brakePower * handBrakeInput;
+        wheelColliders.RLWheel.brakeTorque = brakePower * handBrakeInput;
+    }
 
-
-    private void ApplyMotor()
+    private void ApplyMotor() // oyuncudan aldigimiz gasInput verisine gore motora (arka tekerlere) guc uyguluyoruz
     {
         wheelColliders.RRWheel.motorTorque = motorPower * gasInput;
         wheelColliders.RLWheel.motorTorque = motorPower * gasInput;
     }
 
-    private void ApplySteering()
+    private void ApplySteering() // oyuncudan alinan direksiyon bilgisi once hiza gore hesaplanip sonra on tekerlere uygulaniyor
     {
-        steeringAngle = steeringInput * steeringCurve.Evaluate(speed);
+        steeringAngle = steeringInput * steeringCurve.Evaluate(speed); // direksiyon acisini hiz degiskenine gore artirip azaltiyor (maksimum 40 derece - minimum 15 derece Inspectorden ayarlandi)
         wheelColliders.FRWheel.steerAngle = steeringAngle;
         wheelColliders.FLWheel.steerAngle = steeringAngle;
     }
