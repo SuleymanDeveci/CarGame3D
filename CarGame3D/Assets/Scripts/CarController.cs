@@ -19,7 +19,7 @@ public class CarController : MonoBehaviour
     public AnimationCurve steeringCurve; //arac hizli giderken daha az, yavas giderken daha cok direksiyon donus acisi olsun diye kullandigim degisken (100 birim hizla giderken 15 derece -
                                          // (1 birim hizla giderken 40 derece donus acisi olacak sekilde ayarlandi)
     public GameObject smokePrefab;       // icinde tekerlek dumani icin olusturulan ParticleSystem'in yer aldigi bir GameObject
-    public Slider AutoGearSlider;        // otomatik vites için kullanilan bu slider 1, 2, 3, 4 olmak üzere sadece bu 4 int degeri alabilecek: 4(P), 3(R), 2(N), 1(D) viteslerini temsil edecek 
+    public Slider AutoGearSlider;        // otomatik vites için kullanilan bu slider 1, 2, 3, 4 olmak uzere sadece bu 4 int degeri alabilecek: 4(P), 3(R), 2(N), 1(D) viteslerini temsil edecek 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();   
@@ -30,10 +30,11 @@ public class CarController : MonoBehaviour
     private void Update()
     {
         speed = rb.velocity.magnitude * 5; // speed degiskeni aracin anlik hizi ile surekli guncelleniyor.
-        ApplyWheelPosition();
+        CheckInput();
         ApplyMotor();
         ApplySteering();
-        CheckInput();
+        ApplyWheelPosition();
+        CheckParticles();
     }
 
     private void OnAutoGearValueChange() // her vites degistiginde gasInput degerini "0" a esitliyoruz
@@ -155,11 +156,11 @@ public class CarController : MonoBehaviour
     private void ApplySteering() // oyuncudan alinan direksiyon bilgisi once hiza gore hesaplanip sonra on tekerlere uygulaniyor
     {
         steeringAngle = steeringInput * steeringCurve.Evaluate(speed); // direksiyon acisini hiz degiskenine gore artirip azaltiyor (maksimum 40 derece - minimum 15 derece Inspectorden ayarlandi)
-        wheelColliders.FRWheel.steerAngle = steeringAngle;
+        wheelColliders.FRWheel.steerAngle = steeringAngle; // elde ettigimiz degeri on tekerlere uyguluyoruz
         wheelColliders.FLWheel.steerAngle = steeringAngle;
     }
 
-    private void ApplyWheelPosition()
+    private void ApplyWheelPosition() // UpdateWheel Fonksiyon'unu her teker icin ayri ayri cagiriyor
     {
         UpdateWheel(wheelColliders.FRWheel, wheelMeshes.FRWheelMesh);
         UpdateWheel(wheelColliders.FLWheel, wheelMeshes.FLWheelMesh);
@@ -167,12 +168,71 @@ public class CarController : MonoBehaviour
         UpdateWheel(wheelColliders.RLWheel, wheelMeshes.RLWheelMesh);
     }
 
-    private void UpdateWheel(WheelCollider coll, MeshRenderer wheelMesh)
+    private void CheckParticles() // Particlelerin olusma zamanini kontrol ediyoruz
     {
-        Quaternion quat;
-        Vector3 position;
-        coll.GetWorldPose(out position, out quat);
-        wheelMesh.transform.position = position;
-        wheelMesh.transform.rotation = quat;
+        WheelHit[] wheelHits = new WheelHit[4];                   // tekerlerin yere temas edip etmedigi bilgisini tutan degiskenn (Unity Ozelligi)
+        wheelColliders.FRWheel.GetGroundHit(out wheelHits[0]);    // GetGroundHit metodu, WheelHit türünde bir degisken donduruyor, bu degiskenide wheelHit[] arrayinin icerisine atiyoruz
+                                                                  // ***ONEMLI BILGI*** out keywordunu kullanmamin sebebi wheelHits[0] degiskeninin methodun icerisine bilgi tasiyan bir parametre degilde,
+                                                                  // metodun disarisina bilgi cikaran bir parametre oldugunu belirtmek
+        wheelColliders.FLWheel.GetGroundHit(out wheelHits[1]);
+
+        wheelColliders.RRWheel.GetGroundHit(out wheelHits[2]);
+        wheelColliders.RLWheel.GetGroundHit(out wheelHits[3]);
+
+        float slipAllowance = 0.3f;   // tekerlerin particle sacmadan once kaymasina izin verilen miktar
+
+        // asagida yazdigim kod icerisinde foreach kullanamadim cunku her tekerin particleSistemini wheelParticles.FRWheelParticle seklinde isimlendirdim.
+        // eger particle sistemlerini 4 indexli bir array icerisinde tutsaydim foreach kullanabilirdim ve asagidaki gibi kod kalabaligi olmazdi
+        // ama particle sistemlerini array icerisinde tanimlasaydim bu sefer kacinci indexin hangi tekerin particle sistemini temsil ettigini anlamak zor olurdu
+        // yani array ile yapsaydým kodun okunabilirligi bence daha kotu olurdu 
+        if ((Mathf.Abs(wheelHits[0].sidewaysSlip) + Mathf.Abs(wheelHits[0].forwardSlip) > slipAllowance)) // eger sag on tekerin yanal kayma degeri ile dikey kayma degerleri toplami izin verilen kayma degerinden buyukse 
+        {
+            wheelParticles.FRWheelParticle.Play(); // sag on teker particle yaymaya baslasin
+        }
+        else // degilse
+        {
+            wheelParticles.FRWheelParticle.Stop(); // sag on teker particle yaymayi durdursun
+        }
+
+        if ((Mathf.Abs(wheelHits[1].sidewaysSlip) + Mathf.Abs(wheelHits[1].forwardSlip) > slipAllowance)) // eger sol on tekerin yanal kayma degeri ile dikey kayma degerleri toplami izin verilen kayma degerinden buyukse 
+        {
+            wheelParticles.FLWheelParticle.Play(); // sol on teker particle yaymaya baslasin
+        }
+        else // degilse
+        {
+            wheelParticles.FLWheelParticle.Stop(); // sol on teker particle yaymayi durdursun
+        }
+
+        if ((Mathf.Abs(wheelHits[2].sidewaysSlip) + Mathf.Abs(wheelHits[2].forwardSlip) > slipAllowance)) // eger sag arka tekerin yanal kayma degeri ile dikey kayma degerleri toplami izin verilen kayma degerinden buyukse 
+        {
+            wheelParticles.RRWheelParticle.Play(); // sag arka teker particle yaymaya baslasin
+        }
+        else // degilse
+        {
+            wheelParticles.RRWheelParticle.Stop(); // sag arka teker particle yaymayi durdursun
+        }
+
+        if ((Mathf.Abs(wheelHits[3].sidewaysSlip) + Mathf.Abs(wheelHits[3].forwardSlip) > slipAllowance)) // eger sol arka tekerin yanal kayma degeri ile dikey kayma degerleri toplami izin verilen kayma degerinden buyukse 
+        {
+            wheelParticles.RLWheelParticle.Play(); // sol arka teker particle yaymaya baslasin
+        }
+        else // degilse
+        {
+            wheelParticles.RLWheelParticle.Stop(); // sol arka teker particle yaymayi durdursun
+        }
+    }
+
+    // Asagidaki kodu anlamak icin once sunu bilmeliyiz: Her tekerlek icin 2 Adet GameObject tanimladim, bir tanesinin icerisinde sadece WheelCollider var, digerinin icerisinde ise MeshRenderer var
+    private void UpdateWheel(WheelCollider coll, MeshRenderer wheelMesh) // icerisinde WheelCollider bulunan GameObject'in Position ve Quaternion bilgisini alip,
+                                                            // icerisinde MeshRenderer bulunan GameObject'in icerisine atiyorum, boylelikle tekerin dondugu goruntusu olusuyor
+    {
+        Quaternion quat; // colliderden alinan Quaternion bilgisini tutmak icin tanimlandi
+        Vector3 position; // colliderden alinan Position bilgisini tutmak icin tanimlandi
+        coll.GetWorldPose(out position, out quat); // WheelColliderden dunya uzerindeki Position ve Quaternion bilgisi aliniyor
+        // ***ONEMLI BILGI*** "out" keywordu methoda gonderilen bir parametre gibi gozukur ancak amacý metodun icerisinde kullanýlmak uzere bir bilgi goturmek degil, metodun icerisinden disariya(out) bilgi getirmektir
+        // GetWorldPose metodu'nun tanimlandigi yerde de parametrelerinin basinda out keywordu bulunuyor, yani metod oluþturulurken bastan bunun icin olusturulmus
+        wheelMesh.transform.position = position;  // Wheelcollider'den alinan position bilgisi WheelMesh'e aktarilarak tekerin gitme goruntusunu goruyoruz (aslinda bu olmasa da olur - 
+                                                 // cunku tekerlek aracin body'sine sabit ve onunla ilerliyor)
+        wheelMesh.transform.rotation = quat;    // Wheelcollider'den alinan Quaternion bilgisi WheelMesh'e aktarilarak tekerin donme goruntusunu goruyoruz
     }
 }
