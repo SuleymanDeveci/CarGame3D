@@ -156,6 +156,10 @@ public class CarController : MonoBehaviour
     private void ApplySteering() // oyuncudan alinan direksiyon bilgisi once hiza gore hesaplanip sonra on tekerlere uygulaniyor
     {
         steeringAngle = steeringInput * steeringCurve.Evaluate(speed); // direksiyon acisini hiz degiskenine gore artirip azaltiyor (maksimum 40 derece - minimum 15 derece Inspectorden ayarlandi)
+        steeringAngle += Vector3.SignedAngle(transform.forward, rb.velocity + transform.forward, Vector3.up); // direksiyona counter acý veriyoruz. bunuda aracin gittigi yon ile baktigi yon 
+                                                                                                              // arasimdaki aci farkini hesaplayarak yapiyoruz
+        steeringAngle = Mathf.Clamp(steeringAngle, -40f, 40f); // direksiyon acisini -40 ile 40 arasina indiriyoruz
+
         wheelColliders.FRWheel.steerAngle = steeringAngle; // elde ettigimiz degeri on tekerlere uyguluyoruz
         wheelColliders.FLWheel.steerAngle = steeringAngle;
     }
