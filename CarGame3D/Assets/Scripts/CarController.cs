@@ -15,7 +15,9 @@ public class CarController : MonoBehaviour
     public float brakePower;     // aracin fren gucunu tutan degisken
     public float slipAngle;      // aracin kac derece kaydigi bilgisini tutan degisken
     public float steeringAngle;  // aracin dreksiyonunun kac derece dondugu bilgisini tutan degisken
-    public float speed;          // aracin hizini gosteren degisken
+    public float speed;          // aracin hiz bilgisini tutan degisken
+    public float speedSmooth;    // speed degiskeni'nin ani degisimlerden etkilenmeyen hali (arac sesi icin kullaniyoruz)
+    public float MaxSpeed;       // aracin maksimum hiz bilgisini tutan degisken
     public AnimationCurve steeringCurve; //arac hizli giderken daha az, yavas giderken daha cok direksiyon donus acisi olsun diye kullandigim degisken (100 birim hizla giderken 15 derece -
                                          // (1 birim hizla giderken 40 derece donus acisi olacak sekilde ayarlandi)
     public GameObject smokePrefab;       // icinde tekerlek dumani icin olusturulan ParticleSystem'in yer aldigi bir GameObject
@@ -24,14 +26,16 @@ public class CarController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();   
         InstantiateSmoke();
-        AutoGearSlider.onValueChanged.AddListener(delegate { OnAutoGearValueChange(); }); // sliderin degeri degistiginde, yani vites degistiginde "OnAutoGearValueChange" fonk. tetiklenir
+        AutoGearSlider.onValueChanged.AddListener(delegate { OnAutoGearValueChange(); }); // sliderin degeri her degistiginde, yani her vites degistiginde "OnAutoGearValueChange" fonk. tetiklenir
     }
 
     private void Update()
     {
-        speed = rb.velocity.magnitude * 5; // speed degiskeni aracin anlik hizi ile surekli guncelleniyor.
+        speed = wheelColliders.FRWheel.rpm * (wheelColliders.FRWheel.radius * (2f * Mathf.PI)) / 10f; // speed degiskenini aracin on tekerinin kac kez dondugunden aldigimiz veri ile hesapliyoruz
+        speedSmooth = Mathf.Lerp(speedSmooth, speed, Time.deltaTime); // Lerp komutu sayesinde speed degiskeni'nin biraz geriden takip ediyor ve speed degiskeni'nin ani degisimlerinden etkilenmeyerek 
+                                                                      // speedSmooth degerini yavas yavas arttiriyor veya azaltiyoruz (aracin sesi icin kullaniyoruz)
+
         CheckInput();
-        ApplyMotor();
         ApplySteering();
         ApplyWheelPosition();
         CheckParticles();
@@ -40,6 +44,7 @@ public class CarController : MonoBehaviour
     private void OnAutoGearValueChange() // her vites degistiginde gasInput degerini "0" a esitliyoruz
     {
         gasInput = 0;
+        ApplyMotorZeroTorque(); // tekerlere uygulanan torku 0 yapiyoruz 
     }
     private void InstantiateSmoke()  // Her tekerlek icin, icinde ParticleSystem bulunan bir GameObject olusturulup transformlari ayarlanip wheelParticles nesnesinin içerisi dolduruluyor
     {
@@ -67,16 +72,18 @@ public class CarController : MonoBehaviour
             {
                 if (gasInput < 1) // direk tusa basildigi anda gasInput = 1 diyerek aracin cok sert kalkmasini engellemek icin, gasInput'u yavas yavas artiriyoruz
                 {
-                    gasInput += 0.1f * Time.deltaTime;
+                    gasInput += 2f * Time.deltaTime;
                 }
                 else // gas input'un 1 degerini gecmeyip sabit kalmasini sagliyoruz.
                 {
                     gasInput = 1;
                 }
+                ApplyMotor();
             }
             else if (Input.GetKeyUp(KeyCode.W)) // elimizi "W" tusundan ceker cekmez gasInputu 0 a esitliyoruz
             {
                 gasInput = 0;
+                ApplyMotorZeroTorque();
             }
         }
         else if (AutoGearSlider.value == 3) // eger vites R konumunda ise true
@@ -85,7 +92,7 @@ public class CarController : MonoBehaviour
             {
                 if (gasInput > -1) // direk tusa basildigi anda gasInput = -1 diyerek aracin cok sert geri geri gitmesini engellemek icin, gasInput'u yavas yavas azaltiyoruz
                 {
-                    gasInput -= 0.1f * Time.deltaTime;
+                    gasInput -= 2f * Time.deltaTime;
                 }
                 else // gas input'un -1 degerinin altina inmeyip sabit kalmasini sagliyoruz.
                 {
@@ -149,16 +156,40 @@ public class CarController : MonoBehaviour
 
     private void ApplyMotor() // oyuncudan aldigimiz gasInput verisine gore motora (arka tekerlere) guc uyguluyoruz
     {
-        wheelColliders.RRWheel.motorTorque = motorPower * gasInput;
-        wheelColliders.RLWheel.motorTorque = motorPower * gasInput;
+        if(speed < MaxSpeed) // eger hiz maksimum hizdan daha kucukse
+        {
+            wheelColliders.RRWheel.motorTorque = motorPower * gasInput; // aracin arka tekerlerine guc uygula
+            wheelColliders.RLWheel.motorTorque = motorPower * gasInput;
+
+        }
+        else     // degilse
+        {
+            wheelColliders.RRWheel.motorTorque = 0; // aracin arka tekerlerine 0 guc uygula
+            wheelColliders.RLWheel.motorTorque = 0;
+            // aracin tekerine 0 guc uygula demek yerine else kismini hic yazmayip zaten eger speed < Maxspeed false dondururse araca guc uygulanmayacak diye dusunebilirisin ama
+            // wheelColliders.RLWheel.motorTorque methodu kendisine uygulanan en son gucu aksi soylenmedikce surekli uygulamaya devam ediyor
+            // dolayisi ile tekerlere guc uygulamayi kesmek icin 1 kez olsa bile wheelColliders.RLWheel.motorTorque = 0 demek zorundayiz
+        }
+
+    }
+    private void ApplyMotorZeroTorque() // tekerlere daha fazla guc uygulamak istemedigimiz zaman 1 kez calistirmamiz gereken kod, cunku "wheelColliders.RRWheel.motorTorque" bu kod
+        // sen anlik olarak cagirmasanda, en son aldigi degeri surekli tekerlere uyguluyor
+    {
+        wheelColliders.RRWheel.motorTorque = 0; // sag arka tekere 0 guc uygula
+        wheelColliders.RLWheel.motorTorque = 0; // sol arka tekere 0 guc uygula
     }
 
     private void ApplySteering() // oyuncudan alinan direksiyon bilgisi once hiza gore hesaplanip sonra on tekerlere uygulaniyor
     {
         steeringAngle = steeringInput * steeringCurve.Evaluate(speed); // direksiyon acisini hiz degiskenine gore artirip azaltiyor (maksimum 40 derece - minimum 15 derece Inspectorden ayarlandi)
-        steeringAngle += Vector3.SignedAngle(transform.forward, rb.velocity + transform.forward, Vector3.up); // direksiyona counter acý veriyoruz. bunuda aracin gittigi yon ile baktigi yon 
-                                                                                                              // arasimdaki aci farkini hesaplayarak yapiyoruz
-        steeringAngle = Mathf.Clamp(steeringAngle, -40f, 40f); // direksiyon acisini -40 ile 40 arasina indiriyoruz
+        if(AutoGearSlider.value == 1) // eger vites D konumunda ise
+        {
+            steeringAngle += Vector3.SignedAngle(transform.forward, rb.velocity + transform.forward, Vector3.up); // direksiyona counter acý veriyoruz. bunuda aracin gittigi yon ile baktigi yon 
+                   // arasindaki aci farkini hesaplayarak ve bu farki on tekerleklere ters yonde uygulayarak yapiyoruz.
+                   // Ayrica bunu sadece aracnin vitesi D konumunda ise yapiyoruz cunku arac geri geri giderken, gittigi yon ile baktigi yon bambaska ve geri geri giderken boyle bir sisteme ihtiyac duyulmuyor
+            steeringAngle = Mathf.Clamp(steeringAngle, -40f, 40f); // direksiyon acisini -40 ile 40 arasina indiriyoruz
+        }
+        
 
         wheelColliders.FRWheel.steerAngle = steeringAngle; // elde ettigimiz degeri on tekerlere uyguluyoruz
         wheelColliders.FLWheel.steerAngle = steeringAngle;
@@ -238,5 +269,12 @@ public class CarController : MonoBehaviour
         wheelMesh.transform.position = position;  // Wheelcollider'den alinan position bilgisi WheelMesh'e aktarilarak tekerin gitme goruntusunu goruyoruz (aslinda bu olmasa da olur - 
                                                  // cunku tekerlek aracin body'sine sabit ve onunla ilerliyor)
         wheelMesh.transform.rotation = quat;    // Wheelcollider'den alinan Quaternion bilgisi WheelMesh'e aktarilarak tekerin donme goruntusunu goruyoruz
+    }
+
+    public float GetSpeedRatio() // gasinput degiskeni'nin 0.5 ile 1 arasina clamp yapilmis hali ile arac hizi'nin normalize edilmis halinin carpimini dondurur
+    {
+        float gas = Mathf.Clamp(gasInput, 0.5f, 1f); // gasinput degiskenini 0.5 ile 1 arasina daraltir
+        return (speedSmooth / MaxSpeed) * gas; // normalize edilmis speed degiskeni ile gas degiskeni carpilarak return edilir.
+                                               // speedSmooth: speed degiskenini biraz geriden takip eden, speed degiskeni'nin aksine ani degisikler yerine daha yumsak gecis degerleri alan degisken 
     }
 }
