@@ -7,6 +7,7 @@ public class CarController : MonoBehaviour
     public WheelColliders wheelColliders;  // aracin tekerlek colliderlerinin bulundugu sinifi newliyoruz
     public WhellMeshes wheelMeshes;        // aracin tekerleklerinin MeshRenderer'lerinin bulundugu sinifi newliyoruz
     public WheelParticles wheelParticles;  // her tekerin cikaracagi duman particle larini ayri ayri tutan sinifi newliyoruz
+   
     public float gasInput;       // gaza ne kadar bastigimizin bilgisini tutacak olan degisken
     public float brakeInput;     // frene ne kadar bastigimizin bilgisini tutacak olan degisken
     public float handBrakeInput;     // el frenine ne kadar bastigimizin bilgisini tutacak olan degisken
@@ -18,6 +19,7 @@ public class CarController : MonoBehaviour
     public float speed;          // aracin hiz bilgisini tutan degisken
     public float speedSmooth;    // speed degiskeni'nin ani degisimlerden etkilenmeyen hali (arac sesi icin kullaniyoruz)
     public float MaxSpeed;       // aracin maksimum hiz bilgisini tutan degisken
+
     public AnimationCurve steeringCurve; //arac hizli giderken daha az, yavas giderken daha cok direksiyon donus acisi olsun diye kullandigim degisken (100 birim hizla giderken 15 derece -
                                          // (1 birim hizla giderken 40 derece donus acisi olacak sekilde ayarlandi)
     public GameObject smokePrefab;       // icinde tekerlek dumani icin olusturulan ParticleSystem'in yer aldigi bir GameObject
@@ -32,7 +34,7 @@ public class CarController : MonoBehaviour
     private void Update()
     {
         speed = wheelColliders.FRWheel.rpm * (wheelColliders.FRWheel.radius * (2f * Mathf.PI)) / 10f; // speed degiskenini aracin on tekerinin kac kez dondugunden aldigimiz veri ile hesapliyoruz
-        speedSmooth = Mathf.Lerp(speedSmooth, speed, Time.deltaTime); // Lerp komutu sayesinde speed degiskeni'nin biraz geriden takip ediyor ve speed degiskeni'nin ani degisimlerinden etkilenmeyerek 
+        speedSmooth = Mathf.Lerp(speedSmooth, speed, Time.deltaTime); // Lerp komutu sayesinde speed degiskeni'ni biraz geriden takip ediyor ve speed degiskeni'nin ani degisimlerinden etkilenmeyerek 
                                                                       // speedSmooth degerini yavas yavas arttiriyor veya azaltiyoruz (aracin sesi icin kullaniyoruz)
 
         CheckInput();

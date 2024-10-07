@@ -990,6 +990,18 @@ PrefabInstance:
       propertyPath: AutoGearSlider
       value: 
       objectReference: {fileID: 159906010}
+    - target: {fileID: 1329286291, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
+      propertyPath: limiterVolume
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1329286291, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
+      propertyPath: limiterFrequency
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 1329286291, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
+      propertyPath: limiterEngageRatio
+      value: 0.95
+      objectReference: {fileID: 0}
     - target: {fileID: 3638911070570068518, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
       propertyPath: m_Name
       value: Simple Retro Car
