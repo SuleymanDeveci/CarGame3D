@@ -872,6 +872,7 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
+  - component: {fileID: 963194230}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -903,7 +904,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
+  m_FocalLength: 20.78461
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -937,14 +938,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.2467101, y: 0, z: 0, w: 0.9690893}
-  m_LocalPosition: {x: 0, y: 6.636, z: -9}
+  m_LocalRotation: {x: 0.17445134, y: -0.6852494, z: 0.17445134, w: 0.6852494}
+  m_LocalPosition: {x: 9, y: 6.636, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 28.566, y: -90, z: 0}
 --- !u!114 &963194229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -952,7 +953,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72ece51f2901e7445ab60da3685d6b5f, type: 3}
   m_Name: 
@@ -979,6 +980,27 @@ MonoBehaviour:
   m_CameraActivatedEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &963194230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22f50e9c24508e24384984a0a76cfcf6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 1329286288}
+  offSet: {x: 0, y: 3, z: -10}
+  offSet2: {x: 0, y: 3, z: -10}
+  speed: 2
+  mousePosition1: 0
+  mousePosition2: 0
+  mousePositionDelta: 0
+  isFirstClick: 0
+  mouseSensivity: 0.04
 --- !u!1001 &980705320
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -986,6 +1008,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 421736154, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
+      propertyPath: m_ForwardFriction.m_Stiffness
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 980705324, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
       propertyPath: AutoGearSlider
       value: 
@@ -1001,6 +1027,10 @@ PrefabInstance:
     - target: {fileID: 1329286291, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
       propertyPath: limiterEngageRatio
       value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 1595268188, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
+      propertyPath: m_ForwardFriction.m_Stiffness
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3638911070570068518, guid: 0830086465bbffd4ab64ee6fc8c82d74, type: 3}
       propertyPath: m_Name
@@ -1421,7 +1451,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1780346290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1475,7 +1505,7 @@ Transform:
   - {fileID: 2119252913}
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 29.5, y: 0, z: 0}
 --- !u!1 &1857168492
 GameObject:
   m_ObjectHideFlags: 0

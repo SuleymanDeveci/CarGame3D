@@ -10,12 +10,12 @@ public class EngineAudio : MonoBehaviour
     [Header("Idle")]  // Idle ile alakali degiskenler
     //public AudioSource idleAudio;  // idle AudioSource tanimliyoruz
     public float idleMaxPitch;
-    public float idleMaxVolume;  // idle AudioSource icin maksimum ses seviyesini tutan degisken
-    public float revLimiter;
-    public float limiterVolume;
-    public float limiterFrequency;
-    public float limiterEngageRatio = 0.9f;
-    public float speedRatio; // hiz oranimizi tutan degisken: ne kadar hizli gittigimiz (0 - 1) * ne kadar gaza bastigimiz (0 - 1) = hiz oranimiz (0 - 1) arasinda  
+    public float idleMaxVolume;   // idle AudioSource icin maksimum ses seviyesini tutan degisken
+    public float revLimiterValue;     // devir kesici degeri (diger degiskenlerden gelen veriler ile yapilan hesaplamadan sonra dalgali bir deger alacak olan degisken)
+    public float limiterVolume;       // devir kesici ses yuksekligi
+    public float limiterFrequency;    // devir kesici frekansi
+    public float limiterEngageRatio = 0.9f;  // devir kesicinin hangi noktada devreye girecegini belirleyen degisken
+    public float speedRatio;  // hiz oranimizi tutan degisken: ne kadar hizli gittigimiz (0 - 1) * ne kadar gaza bastigimiz (0 - 1) = hiz oranimiz (0 - 1) arasinda  
 
     private CarController carController; // carController scriptini tanimliyoruz
 
@@ -30,9 +30,14 @@ public class EngineAudio : MonoBehaviour
         {
             speedRatio = carController.GetSpeedRatio(); // hiz orani bilgisini aliyoruz
         }
-        if(speedRatio > limiterEngageRatio)
+        if(speedRatio > limiterEngageRatio) // devir kesici sesinin devreye girip girmemesi gerektigini kontrol ediyor
         {
-            revLimiter = (Mathf.Sin(Time.time * limiterFrequency) + 1f) *limiterVolume * (speedRatio - limiterEngageRatio);
+            revLimiterValue = (Mathf.Sin(Time.time * limiterFrequency) + 1f) *limiterVolume * (speedRatio - limiterEngageRatio); // revLimiterValue degiskenine sesi dalgalandirmasi icin 0 ile 1 arasinda dalgali bir - 
+                                                                                                                                 // float deger veriliyor
+        }
+        else
+        {
+            revLimiterValue = 0f;
         }
 
 
@@ -42,7 +47,7 @@ public class EngineAudio : MonoBehaviour
         // yani 3. parametre 0 a yaklastikca dondurdugu deger ilk parametreye yaklasir, 3. parametre 1 e yaklastikca dondurdugu deger 2. parametreye yaklasir
         
         runningAudio.volume = Mathf.Lerp(0.3f, runningMaxVolume, speedRatio); // hiz oranimiz ne ise aracin sesinin o kadar yuksek cikmasini sagliyoruz
-        runningAudio.pitch = Mathf.Lerp(runningAudio.pitch, Mathf.Lerp(0.3f, runningMaxPitch, speedRatio) +revLimiter, Time.deltaTime); // ic ice lerp komutu ile aracin sesinin pitch degerini cok daha
+        runningAudio.pitch = Mathf.Lerp(runningAudio.pitch, Mathf.Lerp(0.3f, runningMaxPitch, speedRatio) +revLimiterValue, Time.deltaTime); // ic ice lerp komutu ile aracin sesinin pitch degerini cok daha
                                                                                                                             // yumsak bir sekilde artirip azaltiyoruz
 
         //idleAudio.volume = Mathf.Lerp(idleMaxVolume, 0.1f, speedRatio);  // idle sesini ayri bir ses olarak yapmamaya karar verdim. zaten running sesinin pitch degerini 0.3 yapinca idle sesi oluyor
