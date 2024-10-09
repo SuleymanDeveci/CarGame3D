@@ -181,7 +181,6 @@ public class CarController : MonoBehaviour
     {
         wheelColliders.RRWheel.motorTorque = 0; // sag arka tekere 0 guc uygula
         wheelColliders.RLWheel.motorTorque = 0; // sol arka tekere 0 guc uygula
-        Debug.Log("0 POwer");
     }
 
     private void ApplySteering() // oyuncudan alinan direksiyon bilgisi once hiza gore hesaplanip sonra on tekerlere uygulaniyor

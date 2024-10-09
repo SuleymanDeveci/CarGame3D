@@ -37,7 +37,7 @@ public class EngineAudio : MonoBehaviour
         }
         else
         {
-            revLimiterValue = 0f;
+            revLimiterValue = 0f;   //devir kesici devrede deðilse, revLimiterValue'yi 0 a eþitliyoruz
         }
 
 

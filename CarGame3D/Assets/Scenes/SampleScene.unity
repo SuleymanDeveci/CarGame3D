@@ -1000,7 +1000,7 @@ MonoBehaviour:
   mousePosition2: 0
   mousePositionDelta: 0
   isFirstClick: 0
-  mouseSensivity: 0.04
+  mouseSensivity: 0.001
 --- !u!1001 &980705320
 PrefabInstance:
   m_ObjectHideFlags: 0
