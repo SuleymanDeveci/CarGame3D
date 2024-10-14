@@ -9,111 +9,112 @@ using UnityEngine;
  *  
  *  Bu kodu suan oyunda kullanilmamasina ragmen daha sonra tekrar incelemek isterim diye silmedim. 
  */
-public class FollowCamera : MonoBehaviour
+public class CameraSystem : MonoBehaviour
 {
-    public Transform followTarget;    // cameranin bakacagi objenin transformunu aliyoruz
-    public Vector3 camNewPos;       // kameranin yavasca gidecegi yeni pozisyonu
-    public Vector3 camDefaultPos;
-    public float speed;
+    public Transform followTarget;    // kameranin bakacagi objenin transformu
+    private Vector3 _camNewPos;       // kameranin yavasca gidecegi yeni pozisyonu
+    public Vector3 camDefaultPos;   // kameranin varsayilan pozisyonu
+    public float camFollowSpeed;    // kameranin araci takip etme yumsakligi 
 
-    
-    public float mousePosition1;
-    public float mousePosition2;
-    public float mousePositionDelta;
-    public bool isFirstClick;
-    public float mouseSensivity;
+    private float _mousePosition1;     // Mouse'nin ilk pozisyonu (sadece x ekseni)
+    private float _mousePosition2;      // Mouse'nin ilk pozisyondan 0.05f saniye sonra bulundugu ikinci pozisyonu (sadece x ekseni)
+    private float _mousePositionDelta;  // Mouse'nin ilk pozisyonundan ikinci pozisyonunu cikararak elde ettigimiz ve bize mouse'nin hangi yone, hangi hizla gittigi bilgisini veren degisken (sadece x ekseni)
+    public float mouseSensitivity;      // free look modunda mouse hassasiyetini ayarlayan degisken
     
     void Start()
     {
-        isFirstClick = true;
-        camNewPos = camDefaultPos;
+        _camNewPos = camDefaultPos; // baslangicta kamerayi varsayilan pozisyona getiriyoruz 
     }
 
     private void LateUpdate()
     {
-        transform.position = Vector3.Lerp(transform.position, followTarget.position + followTarget.transform.TransformVector(camNewPos), speed * Time.deltaTime);
-        transform.LookAt(followTarget);
+        transform.position = Vector3.Lerp(transform.position, followTarget.position + followTarget.transform.TransformVector(_camNewPos), camFollowSpeed * Time.deltaTime); // lerp metodu sayesinde kameranin istedigimiz
+            // konuma gitmesini sagliyoruz. ama burada "followTarget.position" kodu araci takip etmeye yararken, "followTarget.transform.TransformVector(_camNewPos)" kodu "_camNewPos" degiskenine verilen yeni 
+            // Vector3 degeri sayesinde kamera'nin, arac'in etrafina bakabilmesini sagliyor. 
+
+        transform.LookAt(followTarget); // kamera'nin followTarget'a bakmasini saglar
     }
     
     void Update()
     {
         
-        if (Input.GetMouseButton(1))
+        if (Input.GetMouseButtonDown(1))  // eger mouse'nin sag tusuna basildi ise 1 kez calisir
         {
-            if (isFirstClick == true)
-            {
-                mousePosition1 = Input.mousePosition.x;
-                mousePosition2 = Input.mousePosition.x;
-                isFirstClick = false;
-            }
-            StartCoroutine(MousePosDelay());
+            _mousePosition1 = Input.mousePosition.x; // mouse'nin suanki konumunun x degerini _mousePosition1 degiskeninin icerisine atar
+            _mousePosition2 = Input.mousePosition.x; // mouse'nin suanki konumunun x degerini _mousePosition2 degiskeninin icerisine atar
 
-            mousePositionDelta = mousePosition1 - mousePosition2;
+            StartCoroutine(MousePosDelay());  // mouse'nin ikinci konumunu almak icin 0.05 saniye bekleten kod. 0.05 saniye bekledikten sonra kodun icerisinde atama yapilir
 
-            if (mousePositionDelta > 0)
+            _mousePositionDelta = _mousePosition1 - _mousePosition2; // mouse'nin birinci pozisyonu ve ikinci pozisyonu arasindaki fark hesaplanir. cikan sonuc bize mouse'nin hangi yonde ve hangi hizda gittigi bilgisini verir
+
+            if (_mousePositionDelta > 0)  // eger mouse ekranin solundan sagina dogru gidiyor ise : kamera aracin sol tarafina dogru donmeli
             {
-                if (camNewPos.z < 0 && camNewPos.x <= 0)
+
+                // asagida bulunan 4 adet if else blogunun temel olarak yaptigi sey, _camNewPos Vector'une yeni bir deger atamak, boylelikle yeni atanan deger dogrultusunda kamera aracin etrafinda doner.
+                // Mesela _camNewPos degerini varsayilan olarak (0, 0, -10) olarak tanimladik. bu da kameranin araci tam arkasindan bakmasini sagliyor, eger bu deger (0, 0, 10) olursa kamera araca On taraftan bakar
+                // eger bu deger (0, 10, 0) olursa kamera araca sag tarafindan bakar ve eger bu deger (0, -10, 0) olursa kamera araca sol tarafindan bakar.
+                // asagidaki 4 adet if else kodu ise bu degiskenin mouse hareketi dogrultusunda gereken degeri almasini sagliyor
+                if (_camNewPos.z < 0 && _camNewPos.x <= 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x -= (mousePositionDelta * mouseSensivity * 1/Screen.width), camNewPos.y, camNewPos.z += (mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x -= (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z += (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("1A");
                 }
-                else if (camNewPos.z > 0 && camNewPos.x < 0)
+                else if (_camNewPos.z > 0 && _camNewPos.x < 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x += (mousePositionDelta * mouseSensivity * 1 / Screen.width), camNewPos.y, camNewPos.z += (mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x += (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z += (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("1B");
                 }
-                else if (camNewPos.x > 0 && camNewPos.z > 0)
+                else if (_camNewPos.x > 0 && _camNewPos.z > 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x += (mousePositionDelta * mouseSensivity * 1 / Screen.width), camNewPos.y, camNewPos.z -= (mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x += (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z -= (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("1C");
                 }
-                else if (camNewPos.z < 0 && camNewPos.x > 0)
+                else if (_camNewPos.z < 0 && _camNewPos.x > 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x -= (mousePositionDelta * mouseSensivity * 1 / Screen.width), camNewPos.y, camNewPos.z -= (mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x -= (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z -= (_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("1D");
                 }
             }
-            else
+            else // eger mouse ekranin sagindan soluna dogru gidiyor ise : kamera aracin sag tarafina dogru donmeli
             {
-                if (camNewPos.z < 0 && camNewPos.x >= 0)
+                if (_camNewPos.z < 0 && _camNewPos.x >= 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x += (-mousePositionDelta * mouseSensivity * 1 / Screen.width), camNewPos.y, camNewPos.z += (-mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x += (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z += (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("2A");
                 }
-                else if (camNewPos.z > 0 && camNewPos.x > 0)
+                else if (_camNewPos.z > 0 && _camNewPos.x > 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x -= (-mousePositionDelta * mouseSensivity * 1 / Screen.width), camNewPos.y, camNewPos.z += (-mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x -= (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z += (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("2B");
                 }
-                else if (camNewPos.z > 0 && camNewPos.x < 0)
+                else if (_camNewPos.z > 0 && _camNewPos.x < 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x -= (-mousePositionDelta * mouseSensivity * 1 / Screen.width), camNewPos.y, camNewPos.z -= (-mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x -= (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z -= (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("2C");
                 }
-                else if (camNewPos.z < 0 && camNewPos.x < 0)
+                else if (_camNewPos.z < 0 && _camNewPos.x < 0)
                 {
-                    camNewPos = new Vector3(camNewPos.x += (-mousePositionDelta * mouseSensivity * 1 / Screen.width), camNewPos.y, camNewPos.z -= (-mousePositionDelta * mouseSensivity * 1 / Screen.width));
+                    _camNewPos = new Vector3(_camNewPos.x += (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)), _camNewPos.y, _camNewPos.z -= (-_mousePositionDelta * mouseSensitivity * (1 / Screen.width)));
                     Debug.Log("2D");
                 }
             }
         }
         
-        transform.position = Vector3.Lerp(transform.position, followTarget.position + followTarget.transform.TransformVector(camNewPos), speed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, followTarget.position + followTarget.transform.TransformVector(_camNewPos), camFollowSpeed * Time.deltaTime); // yukarida hesaplanan camNewPos degerini 
+                   // kameranin pozisyonuna uyguluyor
 
-        transform.LookAt(followTarget);
+        transform.LookAt(followTarget);  // kameranin her zaman araca bakmasini sagliyor
         
-        if (Input.GetMouseButtonUp(1))
+        if (Input.GetMouseButtonUp(1)) // eger mouse'nin sag tusu birakildi ise 1 kez calisir (free look modundan cýk)
         {
-            isFirstClick = true;
-            camNewPos = camDefaultPos;
+            _camNewPos = camDefaultPos; // kameranin pozisyonunu varsayilan pozisyona getiriyor
         }
     }
 
-    IEnumerator MousePosDelay()
+    IEnumerator MousePosDelay()  // mouse'nin pozisyonunu 0.05 saniye aralik ile 2 farkli degiskene kaydeden fonksiyon
     {
-        mousePosition1 = Input.mousePosition.x;
-        yield return new WaitForSeconds(0.05f);
-        mousePosition2 = Input.mousePosition.x;
+        _mousePosition1 = Input.mousePosition.x; // mouse'nin ilk pozisyonunu _mousePosition1 degiskenine atiyor
+        yield return new WaitForSeconds(0.05f);  // bekleme suresini ayarlayan kod
+        _mousePosition2 = Input.mousePosition.x; // mouse'nin ikinci pozisyonunu _mousePosition2 degiskenine atiyor
     }
-    
 }
