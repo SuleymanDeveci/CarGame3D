@@ -182,7 +182,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 0.9
+    m_Stiffness: 2
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1
@@ -368,7 +368,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 0.9
+    m_Stiffness: 2
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1
@@ -835,32 +835,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29b91d58db0ae048868143a7368f651, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wheelColliders:
+  _wheelColliders:
     FRWheel: {fileID: 1190761138}
     FLWheel: {fileID: 1376998359}
     RRWheel: {fileID: 421736154}
     RLWheel: {fileID: 1595268188}
-  wheelMeshes:
+  _wheelMeshes:
     FRWheelMesh: {fileID: 4940576782068710888}
     FLWheelMesh: {fileID: 943874440152199447}
     RRWheelMesh: {fileID: 747433544698010513}
     RLWheelMesh: {fileID: 3357285066558782263}
-  wheelParticles:
+  _wheelParticles:
     FRWheelParticle: {fileID: 0}
     FLWheelParticle: {fileID: 0}
     RRWheelParticle: {fileID: 0}
     RLWheelParticle: {fileID: 0}
-  gasInput: 0
-  brakeInput: 0
-  handBrakeInput: 0
-  steeringInput: 0
-  motorPower: 1000
-  brakePower: 1000000
-  slipAngle: 0
-  steeringAngle: 0
-  speed: 0
-  speedClamped: 0
-  MaxSpeed: 100
+  _smokePrefab: {fileID: 336881577860626725, guid: bcee47b92774a414899e067aca8c212c, type: 3}
+  _autoGearSlider: {fileID: 0}
+  _maxSpeed: 100
+  _motorPower: 1000
+  _brakePower: 100000
+  _handBrakePower: 1000
+  _handBrakeStiffness: 0.25
+  _defaultStiffness: 0.5
   steeringCurve:
     serializedVersion: 2
     m_Curve:
@@ -876,17 +873,15 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 100
       value: 9.999998
-      inSlope: -0.018270403
-      outSlope: -0.018270403
+      inSlope: -0.72496367
+      outSlope: -0.72496367
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.1353824
+      inWeight: 0.10833336
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  smokePrefab: {fileID: 336881577860626725, guid: bcee47b92774a414899e067aca8c212c, type: 3}
-  AutoGearSlider: {fileID: 0}
 --- !u!114 &1329286291
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -899,12 +894,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 898c93298455ca24290e50d023a8b97f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runningAudio: {fileID: 1757654576}
-  runningMaxVolume: 1
-  runningMaxPitch: 2
-  idleMaxPitch: 2
-  idleMaxVolume: 1
-  speedRatio: 0
+  _runningAudio: {fileID: 1757654576}
+  _runningMaxVolume: 1
+  _runningMaxPitch: 2
+  _limiterVolume: 4
+  _limiterFrequency: 18
+  _limiterEngageRatio: 0.95
 --- !u!1 &4576468817563483559
 GameObject:
   m_ObjectHideFlags: 0
