@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,31 +11,29 @@ public class GearController : MonoBehaviour
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.LeftShift))  // eger LeftShift tusuna basildiysa
         {
             ShiftUpForAutoGear();
         }
-        else if (Input.GetKeyDown(KeyCode.LeftControl))
+        else if (Input.GetKeyDown(KeyCode.LeftControl))  // eger LeftControl tusuna basildiysa
         {
             ShiftDownForAutoGear();
         }
-        
     }
 
-    private void ShiftUpForAutoGear()   // otomatik vites icin vitesi yukari goturur
+    private void ShiftUpForAutoGear()   // otomatik vites icin vitesi yukari goturur 
     {
-        if(AutoGearSlider.value < 4)
+        if(AutoGearSlider.value < 4)  // degerin maksimum 4 olmasini saglar
         {
-            AutoGearSlider.value++;
+            AutoGearSlider.value++;  // AutoGearSlider'in degerini bir arttir
         }
-        
     }
 
-    private void ShiftDownForAutoGear()   // // otomatik vites icin vitesi asagi goturur
+    private void ShiftDownForAutoGear()    // otomatik vites icin vitesi asagi goturur
     {
-        if (AutoGearSlider.value > 0)
+        if (AutoGearSlider.value > 0)    // degerin minimum 0 olmasini saglar
         {
-            AutoGearSlider.value--;
+            AutoGearSlider.value--;   // AutoGearSlider'in degerini bir azaltir
         }
     }
 }

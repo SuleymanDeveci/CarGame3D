@@ -26,7 +26,7 @@ public class CarController : MonoBehaviour
     private float _brakeInput;     // frene ne kadar bastigimizin bilgisini tutacak olan degisken
     private float _handBrakeInput; // el frenine ne kadar bastigimizin bilgisini tutacak olan degisken
     private float _steeringInput;  // direksiyonu ne kadar cevirdigimizin bilgisini tutacak olan degisken
-    private float _slipAngle;      // aracin kac derece kaydigi bilgisini tutan degisken
+    public float _slipAngle;      // aracin kac derece kaydigi bilgisini tutan degisken
     private float _steeringAngle;  // aracin dreksiyonunun kac derece dondugu bilgisini tutan degisken
     [SerializeField] private float _speed;          // aracin hiz bilgisini tutan degisken
     public float SpeedSmooth { get; private set; }   // _speed degiskeni'nin ani degisimlerden etkilenmeyen hali (get; private set; diger siniflardan erismek icin)
@@ -229,16 +229,15 @@ public class CarController : MonoBehaviour
     {
         _steeringAngle = _steeringInput * steeringCurve.Evaluate(SpeedSmooth); // direksiyon acisini hiz degiskenine gore artirip azaltiyor (maksimum 40 derece - minimum 15 derece Inspectorden ayarlandi)
 
-        /*
-        if(__gearController.AutoGearSlider.value == 1) // eger vites D konumunda ise
+        
+        if(_gearController.AutoGearSlider.value == 1) // eger vites D konumunda ise
         {
-            _steeringAngle += Vector3.SignedAngle(transform.forward, _rb.velocity + transform.forward, Vector3.up); // direksiyona counter acý veriyoruz. bunuda aracin gittigi yon ile baktigi yon 
-                   // arasindaki aci farkini hesaplayarak ve bu farki on tekerleklere ters yonde uygulayarak yapiyoruz.
+            _steeringAngle += Vector3.SignedAngle(transform.forward, _rb.velocity + transform.forward, Vector3.up); // signedAngle tipki Angle methodu gibi iki vektor arasindaki aci farkini verir ama negatifler de dahil
+                   // burada direksiyona counter acý veriyoruz. bunuda aracin gittigi yon ile baktigi yon arasindaki aci farkini hesaplayarak ve bu farki on tekerleklere ters yonde uygulayarak yapiyoruz.
                    // Ayrica bunu sadece aracnin vitesi D konumunda ise yapiyoruz cunku arac geri geri giderken, gittigi yon ile baktigi yon bambaska ve geri geri giderken boyle bir sisteme ihtiyac duyulmuyor
+
             _steeringAngle = Mathf.Clamp(_steeringAngle, -40f, 40f); // direksiyon acisini -40 ile 40 arasina indiriyoruz
         }
-        */
-
         _wheelColliders.FRWheel.steerAngle = _steeringAngle; // elde ettigimiz degeri on tekerlere direksiyon acisi uyguluyoruz
         _wheelColliders.FLWheel.steerAngle = _steeringAngle;
     }
