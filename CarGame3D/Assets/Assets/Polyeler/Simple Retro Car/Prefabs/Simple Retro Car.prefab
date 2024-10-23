@@ -188,7 +188,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.5
     m_AsymptoteValue: 0.75
-    m_Stiffness: 0.5
+    m_Stiffness: 0.6
   m_Enabled: 1
 --- !u!1 &1190761136
 GameObject:
@@ -244,13 +244,13 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 1.17
+    m_Stiffness: 0.8
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.5
     m_AsymptoteValue: 0.75
-    m_Stiffness: 0.5
+    m_Stiffness: 0.8
   m_Enabled: 1
 --- !u!1 &1376998357
 GameObject:
@@ -306,13 +306,13 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 1.17
+    m_Stiffness: 0.8
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.5
     m_AsymptoteValue: 0.75
-    m_Stiffness: 0.5
+    m_Stiffness: 0.8
   m_Enabled: 1
 --- !u!1 &1595268186
 GameObject:
@@ -374,7 +374,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.5
     m_AsymptoteValue: 0.75
-    m_Stiffness: 0.5
+    m_Stiffness: 0.6
   m_Enabled: 1
 --- !u!1 &1757654574
 GameObject:
@@ -781,6 +781,7 @@ GameObject:
   - component: {fileID: 980705323}
   - component: {fileID: 980705324}
   - component: {fileID: 1329286291}
+  - component: {fileID: 2091349543}
   m_Layer: 0
   m_Name: Simple Retro Car
   m_TagString: Untagged
@@ -851,18 +852,17 @@ MonoBehaviour:
     RRWheelParticle: {fileID: 0}
     RLWheelParticle: {fileID: 0}
   _smokePrefab: {fileID: 336881577860626725, guid: bcee47b92774a414899e067aca8c212c, type: 3}
-  _autoGearSlider: {fileID: 0}
   _maxSpeed: 100
-  _motorPower: 1000
-  _brakePower: 100000
-  _handBrakePower: 1000
-  _handBrakeStiffness: 0.25
-  _defaultStiffness: 0.5
+  _motorPower: 300
+  _brakePower: 1000
+  _handBrakePower: 100
+  _handBrakeStiffness: 0.1
+  _defaultStiffness: 0.75
   steeringCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0
+      time: 0
       value: 40.000004
       inSlope: 0
       outSlope: 0
@@ -871,13 +871,31 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 100
-      value: 9.999998
-      inSlope: -0.72496367
-      outSlope: -0.72496367
+      time: 32.566353
+      value: 35.29898
+      inSlope: -0.40625787
+      outSlope: -0.40625787
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.10833336
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 63.31865
+      value: 15.004713
+      inSlope: -0.5051264
+      outSlope: -0.5051264
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 99.806145
+      value: 6.0147357
+      inSlope: 0.032687947
+      outSlope: 0.032687947
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.38756105
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -900,6 +918,18 @@ MonoBehaviour:
   _limiterVolume: 4
   _limiterFrequency: 18
   _limiterEngageRatio: 0.95
+--- !u!114 &2091349543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3638911070570068518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 857c2e9ccf2ad9a40a8336f17dd4f583, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4576468817563483559
 GameObject:
   m_ObjectHideFlags: 0
